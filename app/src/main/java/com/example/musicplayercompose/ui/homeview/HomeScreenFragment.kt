@@ -1,7 +1,7 @@
 package com.example.musicplayercompose.ui.homeview
 
+import android.media.MediaPlayer
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -25,23 +25,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
+import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.example.musicplayercompose.R
 import com.example.musicplayercompose.databinding.FragmentHomeScreenBinding
 import com.example.musicplayercompose.model.Song
+import com.example.musicplayercompose.model.media.MediaPlayerHolder
 import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModel
 import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModelFactory
 
 
 class HomeScreenFragment : Fragment() {
     private lateinit var viewModel: HomeScreenViewModel
-
+    private var currentSongIndex: Int = 0
     private var _binding: FragmentHomeScreenBinding? = null
-
-    // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -51,24 +52,39 @@ class HomeScreenFragment : Fragment() {
     ): View {
         _binding = FragmentHomeScreenBinding.inflate(inflater, container, false)
         val view = binding.root
-        viewModel = ViewModelProvider(this, HomeScreenViewModelFactory(requireContext())).get(HomeScreenViewModel::class.java)
+        viewModel = ViewModelProvider(
+            this,
+            HomeScreenViewModelFactory(requireContext())
+        )[HomeScreenViewModel::class.java]
 
         binding.composeView.apply {
-            // Dispose of the Composition when the view's LifecycleOwner
-            // is destroyed
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                // In Compose world
                 MaterialTheme {
                     val songs by viewModel.uiState.songsStateFlow.collectAsState()
-                    SongList(songs, this@HomeScreenFragment::onSongClick)
+                    SongList(songs) { song ->
+                        onSongClick(song)
+                    }
                 }
             }
         }
         return view
     }
+
     private fun onSongClick(song: Song) {
-        // Handle song click here
+        val position = viewModel.uiState.songsStateFlow.value.indexOf(song)
+        playSelectedSong(position)
+        findNavController().navigate(R.id.action_homeScreenFragment_to_playScreenFragment)
+    }
+
+    private fun playSelectedSong(position: Int) {
+        MediaPlayerHolder.mediaPlayer?.release()
+        currentSongIndex = position
+        MediaPlayerHolder.mediaPlayer = MediaPlayer.create(
+            requireContext(),
+            viewModel.uiState.songsStateFlow.value[position].songUri
+        )
+        MediaPlayerHolder.mediaPlayer?.start()
     }
 
     override fun onDestroyView() {
@@ -79,6 +95,17 @@ class HomeScreenFragment : Fragment() {
 }
 
 @Composable
+fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit) {
+    LazyColumn {
+        items(songs) { song ->
+            SongListItem(song, onSongClick)
+            Divider()
+        }
+    }
+}
+
+@OptIn(ExperimentalCoilApi::class)
+@Composable
 fun SongListItem(song: Song, onClick: (Song) -> Unit) {
     Row(
         modifier = Modifier
@@ -87,25 +114,12 @@ fun SongListItem(song: Song, onClick: (Song) -> Unit) {
     ) {
         Image(
             painter = rememberImagePainter(data = song.albumArtUri),
-            contentDescription = "Album Art",
+            contentDescription = stringResource(R.string.album_art),
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(4.dp))
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(song.title)
-    }
-}
-
-
-@Composable
-fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit) {
-    LazyColumn {
-        items(songs) { song ->
-            Log.d("hola", "test${song}")
-            println(song.title)
-            SongListItem(song, onSongClick)
-            Divider()
-        }
     }
 }

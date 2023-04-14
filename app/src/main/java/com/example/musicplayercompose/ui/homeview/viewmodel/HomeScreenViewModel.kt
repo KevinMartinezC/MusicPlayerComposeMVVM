@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicplayercompose.model.Song
 import com.example.musicplayercompose.model.SongRepository
-import com.example.musicplayercompose.ui.homeview.UIState
+import com.example.musicplayercompose.ui.homeview.HomeUIState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -17,8 +17,7 @@ class HomeScreenViewModel(context: Context) : ViewModel() {
     }
 
     private val songsMutableState = MutableStateFlow<List<Song>>(emptyList())
-
-    val uiState = UIState(songsMutableState)
+    val uiState = HomeUIState(songsMutableState)
 
     init {
         viewModelScope.launch {
