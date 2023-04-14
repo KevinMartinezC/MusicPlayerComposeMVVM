@@ -102,4 +102,6 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata")
     // Optional - Integration with RxJava
     implementation("androidx.compose.runtime:runtime-rxjava2")
+    implementation ("io.coil-kt:coil-compose:1.3.2")
+
 }
