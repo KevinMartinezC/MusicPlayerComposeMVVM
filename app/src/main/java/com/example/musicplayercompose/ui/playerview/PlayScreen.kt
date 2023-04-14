@@ -18,26 +18,66 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.example.musicplayercompose.R
+import com.example.musicplayercompose.model.media.MediaPlayerHolder
 import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModel
 
 @Composable
-fun PlayScreen(viewModel: PlayScreenViewModel) {
+fun PlayScreen(viewModel: PlayScreenViewModel, mediaPlayerHolder: MediaPlayerHolder) {
+    LaunchedEffect(Unit) {
+        viewModel.updateSliderPosition(mediaPlayerHolder)
+    }
 
- ScreenContentPlayer(viewModel.uiState)
+    val context = LocalContext.current
+    val onPreviousClick = {
+        viewModel.onPreviousButtonClick(context, mediaPlayerHolder, viewModel.songs.value)
+    }
+    val onNextClick = {
+        viewModel.onNextButtonClick(context, mediaPlayerHolder, viewModel.songs.value)
+    }
+    val onPlayPauseClick = {
+        viewModel.onPlayPauseButtonClick()
+    }
+    ScreenContentPlayer(
+        uiState = viewModel.uiState,
+        onPreviousClick = onPreviousClick,
+        onNextClick = onNextClick,
+        onPlayPauseClick = onPlayPauseClick,
+        onSliderPositionChanged = { newSliderPosition ->
+            viewModel.onSliderPositionChanged(
+                newSliderPosition
+            )
+        }
+    )
 }
 
+
 @Composable
-fun ScreenContentPlayer(uiState: PlayerUIState){
-    val title by uiState.sonTitle.collectAsState()
+fun ScreenContentPlayer(
+    uiState: PlayerUIState,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit,
+    onPlayPauseClick: () -> Unit,
+    onSliderPositionChanged: (Float) -> Unit
+
+
+) {
+    val title by uiState.songTitle.collectAsState()
     val imageSong by uiState.image.collectAsState()
+    val playPauseButton by uiState.playPauseButton.collectAsState()
+    val sliderPosition by uiState.sliderPosition.collectAsState()
+
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,7 +86,9 @@ fun ScreenContentPlayer(uiState: PlayerUIState){
         Box(Modifier.padding(16.dp)) {
             Column {
                 Image(
-                    painter = imageSong?.let { rememberImagePainter(data = it) } ?: painterResource(id = R.drawable.album_art_1),
+                    painter = imageSong?.let { rememberImagePainter(data = it) } ?: painterResource(
+                        id = R.drawable.album_art_1
+                    ),
                     contentDescription = "Music Image",
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -60,8 +102,8 @@ fun ScreenContentPlayer(uiState: PlayerUIState){
                         .padding(top = 16.dp)
                 )
                 Slider(
-                    value = 0f, // You should replace this with a state variable linked to your ViewModel
-                    onValueChange = { /* Handle value change */ },
+                    value = sliderPosition, // You should replace this with a state variable linked to your ViewModel
+                    onValueChange = onSliderPositionChanged,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
@@ -72,21 +114,21 @@ fun ScreenContentPlayer(uiState: PlayerUIState){
                         .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    FloatingActionButton(onClick = { /* Handle previous button click */ }) {
+                    FloatingActionButton(onClick = onPreviousClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.outline_skip_previous_24),
                             contentDescription = "Previous Song Button"
                         )
                     }
                     Spacer(modifier = Modifier.width(20.dp))
-                    FloatingActionButton(onClick = { /* Handle play/pause button click */ }) {
+                    FloatingActionButton(onClick = onPlayPauseClick) {
                         Icon(
-                            painter = painterResource(id = R.drawable.outline_play_arrow_24),
+                            painter = painterResource(id = playPauseButton),
                             contentDescription = "Play or Pause Song Button"
                         )
                     }
                     Spacer(modifier = Modifier.width(20.dp))
-                    FloatingActionButton(onClick = { /* Handle next button click */ }) {
+                    FloatingActionButton(onClick = onNextClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.outline_skip_next_24),
                             contentDescription = "Next Song Button"

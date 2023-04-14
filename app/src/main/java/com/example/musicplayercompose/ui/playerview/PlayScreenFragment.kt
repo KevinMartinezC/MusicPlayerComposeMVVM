@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.musicplayercompose.model.SongRepository
+import com.example.musicplayercompose.model.media.MediaPlayerHolder
 import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModel
 import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModelFactory
 
@@ -30,7 +31,7 @@ class PlayScreenFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 MaterialTheme {
-                    PlayScreen(viewModel)
+                    PlayScreen(viewModel, MediaPlayerHolder)
                 }
             }
         }

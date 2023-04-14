@@ -2,7 +2,6 @@ package com.example.musicplayercompose.ui.homeview
 
 import android.media.MediaPlayer
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,6 +27,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import coil.compose.rememberImagePainter
@@ -101,7 +101,6 @@ fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit) {
         }
     }
 }
-
 @Composable
 fun SongListItem(song: Song, onClick: (Song) -> Unit) {
     Row(
