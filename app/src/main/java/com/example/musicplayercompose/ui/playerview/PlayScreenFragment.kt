@@ -1,41 +1,55 @@
 package com.example.musicplayercompose.ui.playerview
 
+import android.app.Application
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import com.example.musicplayercompose.databinding.FragmentPlayScreenBinding
+import androidx.lifecycle.ViewModelProvider
+import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModelFactory
+import com.example.musicplayercompose.model.SongRepository
+import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModel
 
 class PlayScreenFragment : Fragment() {
-
-    private var _binding: FragmentPlayScreenBinding? = null
-
-    // This property is only valid between onCreateView and onDestroyView.
-    private val binding get() = _binding!!
+    private lateinit var viewModel: PlayScreenViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentPlayScreenBinding.inflate(inflater, container, false)
-        val view = binding.root
-        binding.composeView.apply {
+        viewModel = ViewModelProvider(
+            this,
+            PlayScreenViewModelFactory(Application(),SongRepository)
+        )[PlayScreenViewModel::class.java]
+        return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 MaterialTheme {
-                       PlayScreen()
+                   PlayScreen(viewModel)
                 }
             }
         }
-        return view
     }
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initSongInfo()
+    }
+
+    private fun initSongInfo() {
+        val args = arguments
+        val songTitle = args?.getString(SONG_TITLE_KEY).orEmpty()
+        viewModel.setSongTitle(songTitle)
+
+
+    }
+    companion object {
+        const val SONG_TITLE_KEY = "songTitle"
+
     }
 }

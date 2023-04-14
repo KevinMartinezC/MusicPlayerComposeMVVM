@@ -24,40 +24,36 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.example.musicplayercompose.R
-import com.example.musicplayercompose.databinding.FragmentHomeScreenBinding
 import com.example.musicplayercompose.model.Song
+import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
 import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModel
 import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModelFactory
+import com.example.musicplayercompose.ui.playerview.PlayScreenFragment
 
 
 class HomeScreenFragment : Fragment() {
     private lateinit var viewModel: HomeScreenViewModel
     private var currentSongIndex: Int = 0
-    private var _binding: FragmentHomeScreenBinding? = null
-    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHomeScreenBinding.inflate(inflater, container, false)
-        val view = binding.root
         viewModel = ViewModelProvider(
             this,
             HomeScreenViewModelFactory(requireContext())
         )[HomeScreenViewModel::class.java]
-
-        binding.composeView.apply {
+        return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 MaterialTheme {
@@ -68,13 +64,20 @@ class HomeScreenFragment : Fragment() {
                 }
             }
         }
-        return view
     }
 
     private fun onSongClick(song: Song) {
         val position = viewModel.uiState.songsStateFlow.value.indexOf(song)
         playSelectedSong(position)
-        findNavController().navigate(R.id.action_homeScreenFragment_to_playScreenFragment)
+
+        navigateToDetailActivity(position)
+    }
+
+    private fun navigateToDetailActivity(position: Int) {
+        val bundle = Bundle().apply {
+            putString(PlayScreenFragment.SONG_TITLE_KEY, SongRepository.songs[position].title)
+        }
+        findNavController().navigate(R.id.action_homeScreenFragment_to_playScreenFragment, bundle)
     }
 
     private fun playSelectedSong(position: Int) {
@@ -85,11 +88,6 @@ class HomeScreenFragment : Fragment() {
             viewModel.uiState.songsStateFlow.value[position].songUri
         )
         MediaPlayerHolder.mediaPlayer?.start()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
 }
@@ -104,7 +102,6 @@ fun SongList(songs: List<Song>, onSongClick: (Song) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun SongListItem(song: Song, onClick: (Song) -> Unit) {
     Row(

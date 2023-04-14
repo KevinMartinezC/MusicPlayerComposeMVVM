@@ -1,5 +1,6 @@
 package com.example.musicplayercompose.ui.playerview
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -7,16 +8,28 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberImagePainter
 import com.example.musicplayercompose.R
+import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModel
 
-@Preview
 @Composable
-fun PlayScreen() {
+fun PlayScreen(viewModel: PlayScreenViewModel) {
+
+ ScreenContentPlayer(viewModel.uiState)
+}
+
+@Composable
+fun ScreenContentPlayer(uiState: PlayerUIState){
+    val title by uiState.sonTitle.collectAsState()
+    val imageSong by uiState.image.collectAsState()
+    Log.d("image", "${imageSong}")
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -25,14 +38,15 @@ fun PlayScreen() {
         Box(Modifier.padding(16.dp)) {
             Column {
                 Image(
-                    painter = painterResource(id = R.drawable.album_art_1),
+                    painter = imageSong?.let { rememberImagePainter(data = it) } ?: painterResource(id = R.drawable.album_art_1),
                     contentDescription = "Music Image",
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .size(200.dp)
                 )
+
                 Text(
-                    text = "Song Title",
+                    text = title ?: "Song Title",
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(top = 16.dp)
