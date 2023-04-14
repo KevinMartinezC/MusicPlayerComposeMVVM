@@ -12,7 +12,6 @@ enum class AffectedRow {
     None,
     OneLine,
 }
-
 class SongProvider : ContentProvider() {
     private val _deletedSongs = mutableSetOf<String>()
 
@@ -22,7 +21,7 @@ class SongProvider : ContentProvider() {
         Song.create(SONG_NAME_THREE, R.raw.song3, R.drawable.album_art_3)
     )
 
-    val songs: List<Song>
+    private val songs: List<Song>
         get() = _songs.toList()
 
     override fun onCreate(): Boolean {

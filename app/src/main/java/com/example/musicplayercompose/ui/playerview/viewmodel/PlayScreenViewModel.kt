@@ -9,7 +9,8 @@ import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.ui.playerview.PlayerUIState
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class PlayScreenViewModel(application: Application, songRepository: SongRepository) : AndroidViewModel(application) {
+class PlayScreenViewModel(application: Application, songRepository: SongRepository) :
+    AndroidViewModel(application) {
 
     private val songTitle = MutableStateFlow<String?>(null)
 
@@ -18,8 +19,10 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
     private val songAlbumArtUri = MutableStateFlow<Uri?>(null)
 
 
-    private val songs: MutableStateFlow<List<Song>> = MutableStateFlow(songRepository.songs) // Initialize with your song data
-     val uiState = PlayerUIState(songTitle, songAlbumArtUri)
+    private val songs: MutableStateFlow<List<Song>> =
+        MutableStateFlow(songRepository.songs)
+
+    val uiState = PlayerUIState(songTitle, songAlbumArtUri)
 
     fun setSongTitle(songTitle: String) {
         this.songTitle.value = songTitle
@@ -27,5 +30,6 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
         _currentSongIndex.value = index
         songAlbumArtUri.value = songs.value.getOrNull(index)?.albumArtUri
     }
+
 
 }
