@@ -2,12 +2,14 @@ package com.example.musicplayercompose.model
 
 import android.net.Uri
 import androidx.annotation.DrawableRes
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import com.example.musicplayercompose.R
 
 data class Song(
     val title: String,
     val songUri: Uri,
     val albumArtUri: Uri,
-    var selected: Boolean = false,
+    var isSelected: Boolean = false,
 ) {
     companion object {
         fun create(

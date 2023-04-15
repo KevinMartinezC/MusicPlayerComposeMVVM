@@ -105,4 +105,7 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-rxjava2")
     implementation ("io.coil-kt:coil-compose:1.3.2")
 
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+
+
 }
