@@ -14,16 +14,21 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.musicplayercompose.ui.settingview.viewmodel.CustomViewModelFactory
 import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
+import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModel
+import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModelFactory
 import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModel
 import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModelFactory
 import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
 
 class PlayScreenFragment : Fragment() {
     private lateinit var viewModel: PlayScreenViewModel
-
     private val sharedViewModel: SettingScreenViewModel by activityViewModels {
         CustomViewModelFactory(SongRepository)
     }
+    private val homeScreenViewModel: HomeScreenViewModel by activityViewModels {
+        HomeScreenViewModelFactory(requireContext(), SongRepository, sharedViewModel)
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,8 +37,14 @@ class PlayScreenFragment : Fragment() {
     ): View {
         viewModel = ViewModelProvider(
             this,
-            PlayScreenViewModelFactory(Application(), SongRepository, sharedViewModel)
+            PlayScreenViewModelFactory(
+                Application(),
+                SongRepository,
+                sharedViewModel,
+                homeScreenViewModel
+            )
         )[PlayScreenViewModel::class.java]
+
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {

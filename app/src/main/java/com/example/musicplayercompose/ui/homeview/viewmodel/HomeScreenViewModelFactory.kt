@@ -7,8 +7,10 @@ import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
 
 class HomeScreenViewModelFactory(
-    private val context: Context, private val songRepository: SongRepository,
-    private val sharedViewModel: SettingScreenViewModel
+    private val context: Context,
+    private val songRepository: SongRepository,
+    private val sharedViewModel: SettingScreenViewModel,
+
 
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

@@ -10,15 +10,20 @@ import com.example.musicplayercompose.R
 import com.example.musicplayercompose.model.Song
 import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
+import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModel
 import com.example.musicplayercompose.ui.playerview.PlayerUIState
 import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class PlayScreenViewModel(application: Application, songRepository: SongRepository,
-                          private val sharedViewModel: SettingScreenViewModel
+class PlayScreenViewModel(application: Application,
+                          songRepository: SongRepository,
+                          private val sharedViewModel: SettingScreenViewModel,
+                          private val homeScreenViewModel: HomeScreenViewModel
+
 ) :
     AndroidViewModel(application) {
 
@@ -35,8 +40,9 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
     private val playPauseButtonMutableStateFlow = MutableStateFlow(R.drawable.baseline_stop_24)
 
 
-    private val songs: MutableStateFlow<List<Song>> =
-        MutableStateFlow(songRepository.songs)
+
+    private val songs: StateFlow<List<Song>> = homeScreenViewModel.uiState.songsStateFlow
+
 
     val uiState =
         PlayerUIState(
@@ -84,7 +90,7 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
             }
             mediaPlayer.reset()
 
-            val songs = sharedViewModel.songs.value
+            val songs = homeScreenViewModel.uiState.songsStateFlow.value
 
             if (currentSongIndex.value !in songs.indices) {
                 currentSongIndex.value = 0
@@ -119,7 +125,7 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
         context: Context,
         mediaPlayerHolder: MediaPlayerHolder
     ) {
-        val songs = sharedViewModel.songs.value
+        val songs = homeScreenViewModel.uiState.songsStateFlow.value
         val currentSongIndexValue = currentSongIndex.value
         val newSongIndex = if (currentSongIndexValue > 0) {
             currentSongIndexValue - 1
@@ -137,7 +143,7 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
         context: Context,
         mediaPlayerHolder: MediaPlayerHolder
     ) {
-        val songs = sharedViewModel.songs.value
+        val songs = homeScreenViewModel.uiState.songsStateFlow.value
         val currentSongIndexValue = currentSongIndex.value
         val newSongIndex = if (currentSongIndexValue < songs.size - 1) {
             currentSongIndexValue + 1

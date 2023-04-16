@@ -1,6 +1,8 @@
 package com.example.musicplayercompose.ui.homeview
 
+import android.content.Context
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -90,15 +92,16 @@ class HomeScreenFragment : Fragment() {
     }
 
     private fun onSongClick(song: Song) {
-        val position = sharedViewModel.songs.value.indexOf(song)
+        val position = viewModel.uiState.songsStateFlow.value.indexOf(song)
         playSelectedSong(position)
 
         navigateToDetailActivity(position)
     }
 
 
+
     private fun navigateToDetailActivity(position: Int) {
-        val songs = sharedViewModel.songs.value
+        val songs = viewModel.uiState.songsStateFlow.value
         val bundle = Bundle().apply {
             putString(PlayScreenFragment.SONG_TITLE_KEY, songs[position].title)
         }
@@ -111,7 +114,7 @@ class HomeScreenFragment : Fragment() {
         currentSongIndex = position
         MediaPlayerHolder.mediaPlayer = MediaPlayer.create(
             requireContext(),
-            sharedViewModel.songs.value[position].songUri
+            viewModel.uiState.songsStateFlow.value[position].songUri
         )
         MediaPlayerHolder.mediaPlayer?.start()
     }
