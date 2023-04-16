@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,9 +29,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,14 +39,12 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.activityViewModels
+import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
-import com.example.music_player_mvvm.ui.settingview.viewmodel.CustomViewModelFactory
+import com.example.musicplayercompose.ui.settingview.viewmodel.CustomViewModelFactory
 import com.example.musicplayercompose.R
 import com.example.musicplayercompose.model.Song
-import com.example.musicplayercompose.model.SongProvider.Companion.ALBUM_ART_URI
-import com.example.musicplayercompose.model.SongProvider.Companion.SONG_NAME
 import com.example.musicplayercompose.model.SongProvider.Companion.SONG_PROVIDER_URI
-import com.example.musicplayercompose.model.SongProvider.Companion.SONG_URI
 import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
 
@@ -59,13 +55,12 @@ class SettingScreenFragment : Fragment() {
     private lateinit var songs: MutableList<Song>
     private val songListState = mutableStateOf<List<Song>>(listOf())
 
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        loadSongsFromProvider() // Make sure to call this before setting up the content
+        loadSongsFromProvider()
         addNewSongsToProvider()
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -74,9 +69,14 @@ class SettingScreenFragment : Fragment() {
                     Scaffold(
                         floatingActionButton = {
                             FloatingActionButton(
-                                onClick = {  },
+                                onClick = {
+                                    addSelectedSongsToHomeScreen()
+                                },
                                 content = {
-                                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_song_button_description))
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = stringResource(R.string.add_song_button_description)
+                                    )
                                 }
                             )
                         },
@@ -84,20 +84,33 @@ class SettingScreenFragment : Fragment() {
                         isFloatingActionButtonDocked = true
                     ) { contentPadding ->
                         SongListSetting(
-                            songs = songListState.value,
-                            paddingValues = contentPadding,
-                            onSongClick = { song ->
-
-
-                            }
+                            songsState = songListState,
+                            paddingValues = contentPadding
                         )
                     }
                 }
             }
-
-
         }
     }
+
+    private fun addSelectedSongsToHomeScreen() {
+        val selectedSongs = songListState.value.filter { it.isSelected }
+        viewModel.addNewSongs(selectedSongs)
+
+        for (song in selectedSongs) {
+            val contentValues = ContentValues().apply {
+                put(SONG_NAME, song.title)
+                put(SONG_URI, song.songUri.toString())
+                put(ALBUM_ART_URI, song.albumArtUri.toString())
+            }
+            requireActivity().contentResolver.insert(SONG_PROVIDER_URI, contentValues)
+        }
+
+        songListState.value = songListState.value.map { song ->
+            song.copy(isSelected = false)
+        }
+    }
+
     private fun addNewSongsToProvider() {
 
         val newSongs = listOf(
@@ -141,13 +154,9 @@ class SettingScreenFragment : Fragment() {
 
 @Composable
 fun SongListSetting(
-    songs: List<Song>,
-    paddingValues: PaddingValues,
-    onSongClick: (Song) -> Unit
+    songsState: MutableState<List<Song>>,
+    paddingValues: PaddingValues
 ) {
-    // Create a stateful list of songs
-    val songListState = remember { mutableStateListOf(*songs.toTypedArray()) }
-
     LazyColumn(
         modifier = Modifier.padding(paddingValues),
         contentPadding = PaddingValues(
@@ -155,21 +164,23 @@ fun SongListSetting(
             vertical = 8.dp
         )
     ) {
-        items(songListState) { song ->
+        items(songsState.value) { song ->
             SongListItem(
                 song = song,
                 onClick = { updatedSong ->
                     // Update the song selection state in the list
                     var index = -1
-                    for (i in songListState.indices) {
-                        if (songListState[i].songUri == updatedSong.songUri) {
+                    for (i in songsState.value.indices) {
+                        if (songsState.value[i].songUri == updatedSong.songUri) {
                             index = i
                             break
                         }
                     }
 
                     if (index >= 0) {
-                        songListState[index] = updatedSong.copy(isSelected = updatedSong.isSelected)
+                        songsState.value = songsState.value.toMutableList().apply {
+                            this[index] = updatedSong.copy(isSelected = updatedSong.isSelected)
+                        }
                     }
                 },
                 onDeleteClick = { /* Handle delete click */ },
@@ -179,6 +190,8 @@ fun SongListSetting(
     }
 }
 
+
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun SongListItem(
     song: Song,
@@ -210,7 +223,10 @@ fun SongListItem(
         // Add the delete button
         IconButton(onClick = onDeleteClick) {
             val deleteIcon = Icons.Default.Delete
-            Icon(deleteIcon, contentDescription = stringResource(R.string.delete_song_button_description))
+            Icon(
+                deleteIcon,
+                contentDescription = stringResource(R.string.delete_song_button_description)
+            )
         }
     }
 }

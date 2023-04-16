@@ -11,28 +11,31 @@ import com.example.musicplayercompose.model.Song
 import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
 import com.example.musicplayercompose.ui.playerview.PlayerUIState
+import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class PlayScreenViewModel(application: Application, songRepository: SongRepository) :
+class PlayScreenViewModel(application: Application, songRepository: SongRepository,
+                          private val sharedViewModel: SettingScreenViewModel
+) :
     AndroidViewModel(application) {
 
 
 
-    val sliderPosition = MutableStateFlow(0f)
+    private val sliderPosition = MutableStateFlow(0f)
 
     private val songTitle = MutableStateFlow<String?>(null)
 
-    private val currentSongIndex = MutableStateFlow<Int>(0)
+    private val currentSongIndex = MutableStateFlow(0)
 
     private val songAlbumArtUri = MutableStateFlow<Uri?>(null)
 
     private val playPauseButtonMutableStateFlow = MutableStateFlow(R.drawable.baseline_stop_24)
 
 
-    val songs: MutableStateFlow<List<Song>> =
+    private val songs: MutableStateFlow<List<Song>> =
         MutableStateFlow(songRepository.songs)
 
     val uiState =
@@ -80,7 +83,14 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
                 mediaPlayer.stop()
             }
             mediaPlayer.reset()
-            val songUri = songs.value[currentSongIndex.value].songUri
+
+            val songs = sharedViewModel.songs.value
+
+            if (currentSongIndex.value !in songs.indices) {
+                currentSongIndex.value = 0
+            }
+
+            val songUri = songs[currentSongIndex.value].songUri
             mediaPlayer.setDataSource(context, songUri)
             mediaPlayer.prepare()
             mediaPlayer.setOnPreparedListener {
@@ -89,6 +99,7 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
             }
         }
     }
+
 
     fun onPlayPauseButtonClick() {
         MediaPlayerHolder.mediaPlayer?.let { mediaPlayer ->
@@ -102,11 +113,13 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
         }
     }
 
+
+
     fun onPreviousButtonClick(
         context: Context,
-        mediaPlayerHolder: MediaPlayerHolder,
-        songs: List<Song>
+        mediaPlayerHolder: MediaPlayerHolder
     ) {
+        val songs = sharedViewModel.songs.value
         val currentSongIndexValue = currentSongIndex.value
         val newSongIndex = if (currentSongIndexValue > 0) {
             currentSongIndexValue - 1
@@ -122,9 +135,9 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
 
     fun onNextButtonClick(
         context: Context,
-        mediaPlayerHolder: MediaPlayerHolder,
-        songs: List<Song>
+        mediaPlayerHolder: MediaPlayerHolder
     ) {
+        val songs = sharedViewModel.songs.value
         val currentSongIndexValue = currentSongIndex.value
         val newSongIndex = if (currentSongIndexValue < songs.size - 1) {
             currentSongIndexValue + 1
@@ -137,6 +150,7 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
         songAlbumArtUri.value = newSong?.albumArtUri
         playSong(context, mediaPlayerHolder)
     }
+
 
 
 }

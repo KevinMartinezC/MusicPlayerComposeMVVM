@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.example.musicplayercompose.R
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
@@ -39,10 +40,10 @@ fun PlayScreen(viewModel: PlayScreenViewModel, mediaPlayerHolder: MediaPlayerHol
 
     val context = LocalContext.current
     val onPreviousClick = {
-        viewModel.onPreviousButtonClick(context, mediaPlayerHolder, viewModel.songs.value)
+        viewModel.onPreviousButtonClick(context, mediaPlayerHolder)
     }
     val onNextClick = {
-        viewModel.onNextButtonClick(context, mediaPlayerHolder, viewModel.songs.value)
+        viewModel.onNextButtonClick(context, mediaPlayerHolder)
     }
     val onPlayPauseClick = {
         viewModel.onPlayPauseButtonClick()
@@ -61,6 +62,7 @@ fun PlayScreen(viewModel: PlayScreenViewModel, mediaPlayerHolder: MediaPlayerHol
 }
 
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ScreenContentPlayer(
     uiState: PlayerUIState,

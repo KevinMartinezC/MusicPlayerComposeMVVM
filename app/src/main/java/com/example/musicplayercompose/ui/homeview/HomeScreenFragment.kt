@@ -7,11 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,7 +20,6 @@ import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -39,22 +36,28 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
+import com.example.musicplayercompose.ui.settingview.viewmodel.CustomViewModelFactory
 import com.example.musicplayercompose.R
 import com.example.musicplayercompose.model.Song
 import com.example.musicplayercompose.model.SongRepository
-import com.example.musicplayercompose.model.SongRepository.songs
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
 import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModel
 import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModelFactory
 import com.example.musicplayercompose.ui.playerview.PlayScreenFragment
+import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
 
 
 class HomeScreenFragment : Fragment() {
     private lateinit var viewModel: HomeScreenViewModel
     private var currentSongIndex: Int = 0
+    private val sharedViewModel: SettingScreenViewModel by activityViewModels {
+        CustomViewModelFactory(SongRepository)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,12 +66,13 @@ class HomeScreenFragment : Fragment() {
     ): View {
         viewModel = ViewModelProvider(
             this,
-            HomeScreenViewModelFactory(requireContext())
+            HomeScreenViewModelFactory(requireContext(), SongRepository, sharedViewModel)
         )[HomeScreenViewModel::class.java]
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val songs by viewModel.uiState.songsStateFlow.collectAsState()
+
                 Scaffold(
                     bottomBar = { BottomBarActions(onSettingsClick = { navigateToSettings() }) }
                 ) { paddingValues ->
@@ -86,25 +90,28 @@ class HomeScreenFragment : Fragment() {
     }
 
     private fun onSongClick(song: Song) {
-        val position = viewModel.uiState.songsStateFlow.value.indexOf(song)
+        val position = sharedViewModel.songs.value.indexOf(song)
         playSelectedSong(position)
 
         navigateToDetailActivity(position)
     }
 
+
     private fun navigateToDetailActivity(position: Int) {
+        val songs = sharedViewModel.songs.value
         val bundle = Bundle().apply {
-            putString(PlayScreenFragment.SONG_TITLE_KEY, SongRepository.songs[position].title)
+            putString(PlayScreenFragment.SONG_TITLE_KEY, songs[position].title)
         }
         findNavController().navigate(R.id.action_homeScreenFragment_to_playScreenFragment, bundle)
     }
+
 
     private fun playSelectedSong(position: Int) {
         MediaPlayerHolder.mediaPlayer?.release()
         currentSongIndex = position
         MediaPlayerHolder.mediaPlayer = MediaPlayer.create(
             requireContext(),
-            viewModel.uiState.songsStateFlow.value[position].songUri
+            sharedViewModel.songs.value[position].songUri
         )
         MediaPlayerHolder.mediaPlayer?.start()
     }
@@ -165,6 +172,7 @@ fun BottomBarActions(onSettingsClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun SongListItem(song: Song, onClick: (Song) -> Unit) {
     Row(

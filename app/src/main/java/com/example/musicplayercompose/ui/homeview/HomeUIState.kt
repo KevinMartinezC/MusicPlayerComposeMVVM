@@ -4,5 +4,6 @@ import com.example.musicplayercompose.model.Song
 import kotlinx.coroutines.flow.StateFlow
 
 data class HomeUIState(
-    val songsStateFlow: StateFlow<List<Song>>
+    val songsStateFlow: StateFlow<List<Song>>,
+
 )

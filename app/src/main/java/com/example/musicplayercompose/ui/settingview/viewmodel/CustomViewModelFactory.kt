@@ -1,9 +1,8 @@
-package com.example.music_player_mvvm.ui.settingview.viewmodel
+package com.example.musicplayercompose.ui.settingview.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.musicplayercompose.model.SongRepository
-import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
 
 class CustomViewModelFactory(private val songRepository: SongRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
