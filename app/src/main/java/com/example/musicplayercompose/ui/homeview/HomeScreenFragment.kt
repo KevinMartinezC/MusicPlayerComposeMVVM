@@ -55,7 +55,9 @@ import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenView
 
 
 class HomeScreenFragment : Fragment() {
-    private lateinit var viewModel: HomeScreenViewModel
+    private val viewModel: HomeScreenViewModel by activityViewModels {
+        HomeScreenViewModelFactory(requireContext(), SongRepository, sharedViewModel)
+    }
     private var currentSongIndex: Int = 0
     private val sharedViewModel: SettingScreenViewModel by activityViewModels {
         CustomViewModelFactory(SongRepository)
@@ -66,10 +68,7 @@ class HomeScreenFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        viewModel = ViewModelProvider(
-            this,
-            HomeScreenViewModelFactory(requireContext(), SongRepository, sharedViewModel)
-        )[HomeScreenViewModel::class.java]
+
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
@@ -97,7 +96,6 @@ class HomeScreenFragment : Fragment() {
 
         navigateToDetailActivity(position)
     }
-
 
 
     private fun navigateToDetailActivity(position: Int) {
@@ -128,7 +126,7 @@ fun SongList(songs: List<Song>, paddingValues: PaddingValues, onSongClick: (Song
         contentPadding = PaddingValues(
             horizontal = 0.dp,
             vertical = 8.dp
-        ) // Adjust the padding values as needed
+        )
     ) {
         items(songs) { song ->
             SongListItem(song, onSongClick)
@@ -136,7 +134,6 @@ fun SongList(songs: List<Song>, paddingValues: PaddingValues, onSongClick: (Song
         }
     }
 }
-
 
 @Composable
 fun BottomBarActions(onSettingsClick: () -> Unit) {

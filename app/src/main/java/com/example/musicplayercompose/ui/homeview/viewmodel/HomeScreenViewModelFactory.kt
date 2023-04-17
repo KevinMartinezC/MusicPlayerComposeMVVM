@@ -10,9 +10,7 @@ class HomeScreenViewModelFactory(
     private val context: Context,
     private val songRepository: SongRepository,
     private val sharedViewModel: SettingScreenViewModel,
-
-
-) : ViewModelProvider.Factory {
+    ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeScreenViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

@@ -30,7 +30,7 @@ class HomeScreenViewModel(
     init {
         viewModelScope.launch {
             fetchSongs(context as Activity)
-            collectAddedSongs() // Add this line
+            collectAddedSongs()
         }
     }
 
@@ -42,19 +42,13 @@ class HomeScreenViewModel(
 
     private fun fetchSongs(activity: Activity) {
         val defaultSongs = songRepository.getDefaultSongs()
-        Log.d("HomeScreenViewModel", "Default songs: $defaultSongs")
 
         val providerSongs = sharedViewModel.fetchSongsFromProvider(activity)
-        Log.d("HomeScreenViewModel", "Provider songs: $providerSongs")
 
         val combinedSongs = mutableListOf<Song>().apply {
             addAll(defaultSongs)
             addAll(providerSongs.filter { song -> !defaultSongs.contains(song) })
         }
-        Log.d("HomeScreenViewModel", "Combined songs: $combinedSongs")
-
         songsMutableState.value = combinedSongs
     }
-
-
 }

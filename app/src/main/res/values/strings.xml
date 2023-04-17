@@ -9,4 +9,9 @@
     <string name="album_art">Album Art</string>
     <string name="delete_song_button_description">"Delete song "</string>
     <string name="add_song_button_description">Buttom to add songs</string>
+    <string name="previous_song_button">Previous Song Button</string>
+    <string name="play_or_pause_song_button">Play or Pause Song Button</string>
+    <string name="next_song_button">Next Song Button</string>
+    <string name="music_image">Music Image</string>
+    <string name="song_title">Song Title</string>
 </resources>

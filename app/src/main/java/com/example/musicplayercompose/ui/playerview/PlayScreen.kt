@@ -1,5 +1,6 @@
 package com.example.musicplayercompose.ui.playerview
 
+import android.app.Application
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,12 +27,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.example.musicplayercompose.R
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
 import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModel
+import com.example.musicplayercompose.ui.playerview.viewmodel.PlayScreenViewModelFactory
 
 @Composable
 fun PlayScreen(viewModel: PlayScreenViewModel, mediaPlayerHolder: MediaPlayerHolder) {
@@ -89,23 +93,24 @@ fun ScreenContentPlayer(
         Box(Modifier.padding(16.dp)) {
             Column {
                 Image(
-                    painter = imageSong?.let { rememberImagePainter(data = it) } ?: painterResource(
+                    painter = imageSong?.let { rememberImagePainter(data = it) } ?:
+                    painterResource(
                         id = R.drawable.album_art_1
                     ),
-                    contentDescription = "Music Image",
+                    contentDescription = stringResource(R.string.music_image),
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .size(200.dp)
                 )
 
                 Text(
-                    text = title ?: "Song Title",
+                    text = title ?: stringResource(R.string.song_title),
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(top = 16.dp)
                 )
                 Slider(
-                    value = sliderPosition, // You should replace this with a state variable linked to your ViewModel
+                    value = sliderPosition,
                     onValueChange = onSliderPositionChanged,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -120,21 +125,21 @@ fun ScreenContentPlayer(
                     FloatingActionButton(onClick = onPreviousClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.outline_skip_previous_24),
-                            contentDescription = "Previous Song Button"
+                            contentDescription = stringResource(R.string.previous_song_button)
                         )
                     }
                     Spacer(modifier = Modifier.width(20.dp))
                     FloatingActionButton(onClick = onPlayPauseClick) {
                         Icon(
                             painter = painterResource(id = playPauseButton),
-                            contentDescription = "Play or Pause Song Button"
+                            contentDescription = stringResource(R.string.play_or_pause_song_button)
                         )
                     }
                     Spacer(modifier = Modifier.width(20.dp))
                     FloatingActionButton(onClick = onNextClick) {
                         Icon(
                             painter = painterResource(id = R.drawable.outline_skip_next_24),
-                            contentDescription = "Next Song Button"
+                            contentDescription = stringResource(R.string.next_song_button)
                         )
                     }
                 }

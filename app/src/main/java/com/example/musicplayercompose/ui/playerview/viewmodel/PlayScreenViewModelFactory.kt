@@ -16,7 +16,7 @@ class PlayScreenViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(PlayScreenViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return PlayScreenViewModel(application, repository, shareViewModel, homeScreenViewModel) as T
+            return PlayScreenViewModel(application, homeScreenViewModel) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

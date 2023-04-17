@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.com.android.application)
     alias(libs.plugins.org.jetbrains.kotlin.android)
+        id("kotlin-parcelize")
+
 }
 
 android {
@@ -106,6 +108,7 @@ dependencies {
     implementation ("io.coil-kt:coil-compose:1.3.2")
 
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+    implementation ("androidx.compose.runtime:runtime-saveable:1.0.5")
 
 
 }

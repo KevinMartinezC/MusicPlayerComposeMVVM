@@ -92,6 +92,7 @@ class SettingScreenFragment : Fragment() {
             }
         }
     }
+    
 
     private fun addSelectedSongsToHomeScreen() {
         val selectedSongs = songListState.value.filter { it.isSelected }
@@ -190,7 +191,6 @@ fun SongListSetting(
     }
 }
 
-
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun SongListItem(
@@ -220,7 +220,6 @@ fun SongListItem(
             }
         )
 
-        // Add the delete button
         IconButton(onClick = onDeleteClick) {
             val deleteIcon = Icons.Default.Delete
             Icon(
