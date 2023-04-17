@@ -1,5 +1,7 @@
 package com.example.musicplayercompose.ui.settingview
 
+import android.app.Activity
+import android.content.ContentUris
 import android.content.ContentValues
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -83,16 +85,25 @@ class SettingScreenFragment : Fragment() {
                         floatingActionButtonPosition = FabPosition.End,
                         isFloatingActionButtonDocked = true
                     ) { contentPadding ->
-                        SongListSetting(
-                            songsState = songListState,
-                            paddingValues = contentPadding
-                        )
+                        activity?.let {
+                            SongListSetting(
+                                activity = it,
+                                songsState = songListState,
+                                paddingValues = contentPadding,
+                                onDeleteSong = { song -> deleteSongFromProvider(song) }
+                            )
+                        }
                     }
                 }
             }
         }
     }
-    
+    private fun deleteSongFromProvider(song: Song) {
+        val selection = "$SONG_URI = ?"
+        val selectionArgs = arrayOf(song.songUri.toString())
+        requireActivity().contentResolver.delete(SONG_PROVIDER_URI, selection, selectionArgs)
+    }
+
 
     private fun addSelectedSongsToHomeScreen() {
         val selectedSongs = songListState.value.filter { it.isSelected }
@@ -156,8 +167,12 @@ class SettingScreenFragment : Fragment() {
 @Composable
 fun SongListSetting(
     songsState: MutableState<List<Song>>,
-    paddingValues: PaddingValues
-) {
+    paddingValues: PaddingValues,
+    onDeleteSong: (Song) -> Unit,
+    activity: Activity,
+
+
+    ) {
     LazyColumn(
         modifier = Modifier.padding(paddingValues),
         contentPadding = PaddingValues(
@@ -184,7 +199,17 @@ fun SongListSetting(
                         }
                     }
                 },
-                onDeleteClick = { /* Handle delete click */ },
+                onDeleteSong = {
+                        val songIndex = songsState.value.indexOf(song)
+                        if (songIndex >= 0) {
+                            val songUriWithId = ContentUris.withAppendedId(SONG_PROVIDER_URI, songIndex.toLong())
+                            activity.contentResolver.delete(songUriWithId, null, null)
+                            songsState.value = songsState.value.toMutableList().apply {
+                                removeAt(songIndex)
+                            }
+                        }
+
+                },
             )
             Divider()
         }
@@ -196,7 +221,8 @@ fun SongListSetting(
 fun SongListItem(
     song: Song,
     onClick: (Song) -> Unit,
-    onDeleteClick: () -> Unit,
+    onDeleteSong: (Song) -> Unit
+
 ) {
     Row(
         modifier = Modifier.padding(8.dp),
@@ -220,12 +246,13 @@ fun SongListItem(
             }
         )
 
-        IconButton(onClick = onDeleteClick) {
+        IconButton(onClick = { onDeleteSong(song) }) {
             val deleteIcon = Icons.Default.Delete
             Icon(
                 deleteIcon,
                 contentDescription = stringResource(R.string.delete_song_button_description)
             )
         }
+
     }
 }
