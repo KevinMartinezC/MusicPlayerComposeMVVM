@@ -3,7 +3,6 @@ package com.example.musicplayercompose.ui.homeview.viewmodel
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicplayercompose.model.Song
@@ -34,9 +33,17 @@ class HomeScreenViewModel(
         }
     }
 
+
     private suspend fun collectAddedSongs() {
         sharedViewModel.addedSongs.collect { song ->
             songsMutableState.value = songsMutableState.value + song
+        }
+    }
+
+    fun refreshSongs() {
+        viewModelScope.launch {
+            val defaultSongs = songRepository.getDefaultSongs()
+            songsMutableState.value = defaultSongs
         }
     }
 

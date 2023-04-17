@@ -1,17 +1,17 @@
 package com.example.musicplayercompose.ui.homeview
 
-import android.content.Context
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,7 +19,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomAppBar
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -29,9 +31,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
@@ -40,12 +50,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.example.musicplayercompose.ui.settingview.viewmodel.CustomViewModelFactory
 import com.example.musicplayercompose.R
+import com.example.musicplayercompose.ui.homeview.model.PullRefreshState
 import com.example.musicplayercompose.model.Song
 import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
@@ -54,6 +64,7 @@ import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModelF
 import com.example.musicplayercompose.ui.playerview.PlayScreenFragment
 import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
 import com.example.musicplayercompose.ui.theme.MyApplicationTheme
+import kotlinx.coroutines.launch
 
 
 class HomeScreenFragment : Fragment() {
@@ -77,16 +88,17 @@ class HomeScreenFragment : Fragment() {
                 MyApplicationTheme{
                     val songs by viewModel.uiState.songsStateFlow.collectAsState()
                     Scaffold(
-
                         bottomBar = { BottomBarActions(onSettingsClick = { navigateToSettings() }) }
                     ) { paddingValues ->
-                        SongList(songs, paddingValues) { song ->
+                        SongList(songs, paddingValues, onSongClick = { song ->
                             onSongClick(song)
-                        }
+                        }, onRefresh = {
+                            viewModel.refreshSongs() // Implement this method in your ViewModel
+                        })
                     }
                 }
-
             }
+
         }
     }
 
@@ -123,19 +135,38 @@ class HomeScreenFragment : Fragment() {
 
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun SongList(songs: List<Song>, paddingValues: PaddingValues, onSongClick: (Song) -> Unit) {
-    LazyColumn(
-        modifier = Modifier.padding(paddingValues),
-        contentPadding = PaddingValues(
-            horizontal = 0.dp,
-            vertical = 8.dp
-        )
-    ) {
-        items(songs) { song ->
-            SongListItem(song, onSongClick)
-            Divider()
+fun SongList(
+    songs: List<Song>,
+    paddingValues: PaddingValues,
+    onSongClick: (Song) -> Unit,
+    onRefresh: suspend () -> Unit
+) {
+    val refreshScope = rememberCoroutineScope()
+    var refreshing by remember { mutableStateOf(false) }
+    var itemCount by remember { mutableStateOf(songs.size) }
+
+    fun refresh() = refreshScope.launch {
+        refreshing = true
+        onRefresh()
+        itemCount = songs.size
+        refreshing = false
+    }
+
+    val state = rememberPullRefreshState(refreshing, ::refresh)
+
+    Box(Modifier.pullRefresh(state)) {
+        LazyColumn(Modifier.fillMaxSize()) {
+            if (!refreshing) {
+                items(songs) { song ->
+                    SongListItem(song, onSongClick)
+                    Divider()
+                }
+            }
         }
+
+        PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
     }
 }
 
@@ -193,5 +224,21 @@ fun SongListItem(song: Song, onClick: (Song) -> Unit) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(song.title,  color = MaterialTheme.colors.secondary)
+    }
+}
+
+@Composable
+fun rememberPullRefreshState(isRefreshing: Boolean, onRefresh: () -> Unit): PullRefreshState {
+    return remember { PullRefreshState(isRefreshing, onRefresh) }
+}
+
+@Composable
+fun PullRefreshIndicator(
+    isRefreshing: Boolean,
+    state: PullRefreshState,
+    modifier: Modifier = Modifier
+) {
+    if (isRefreshing) {
+        CircularProgressIndicator(modifier)
     }
 }
