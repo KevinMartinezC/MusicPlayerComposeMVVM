@@ -1,4 +1,4 @@
-package com.example.musicplayercompose.ui.playerview
+package com.example.musicplayercompose.ui.playerview.viewmodel
 
 import android.net.Uri
 import com.example.musicplayercompose.R
@@ -11,7 +11,4 @@ data class PlayerUIState(
     val index: StateFlow<Int> = MutableStateFlow(0),
     val playPauseButton: StateFlow<Int> = MutableStateFlow(R.drawable.outline_play_arrow_24),
     val sliderPosition: StateFlow<Float> = MutableStateFlow(0f)
-
-
-
 )

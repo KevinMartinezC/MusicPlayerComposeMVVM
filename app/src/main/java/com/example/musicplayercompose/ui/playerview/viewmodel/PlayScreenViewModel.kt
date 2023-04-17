@@ -1,39 +1,41 @@
 package com.example.musicplayercompose.ui.playerview.viewmodel
 
 
-import android.app.Application
 import android.content.Context
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicplayercompose.R
 import com.example.musicplayercompose.model.Song
-import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
-import com.example.musicplayercompose.ui.playerview.PlayerUIState
+import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class PlayScreenViewModel(application: Application, songRepository: SongRepository) :
-    AndroidViewModel(application) {
+class PlayScreenViewModel(
+    val homeScreenViewModel: HomeScreenViewModel,
+) : ViewModel(){
 
+    private var isSongTitleInitialized = false
 
-
-    val sliderPosition = MutableStateFlow(0f)
+    private val sliderPosition = MutableStateFlow(INITIAL_VALUE_SLIDER_POSITION)
 
     private val songTitle = MutableStateFlow<String?>(null)
 
-    private val currentSongIndex = MutableStateFlow<Int>(0)
+    private val currentSongIndex = MutableStateFlow(INITIAL_VALUE_INDEX)
 
     private val songAlbumArtUri = MutableStateFlow<Uri?>(null)
 
     private val playPauseButtonMutableStateFlow = MutableStateFlow(R.drawable.baseline_stop_24)
 
+    private val songs: StateFlow<List<Song>> = homeScreenViewModel.uiState.songsStateFlow
 
-    val songs: MutableStateFlow<List<Song>> =
-        MutableStateFlow(songRepository.songs)
 
     val uiState =
         PlayerUIState(
@@ -43,6 +45,11 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
             playPauseButtonMutableStateFlow,
             sliderPosition = sliderPosition.asStateFlow()
         )
+
+    val currentSong: StateFlow<Song?> = currentSongIndex.map { index ->
+        songs.value.getOrNull(index)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
+
 
     fun onSliderPositionChanged(newSliderPosition: Float) {
         MediaPlayerHolder.mediaPlayer?.let { mediaPlayer ->
@@ -62,16 +69,17 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
                         sliderPosition.value = progress
                     }
                 }
-                delay(1000) // Update the slider position every second
+                delay(1000)
             }
         }
     }
 
-    fun setSongTitle(songTitle: String) {
-        this.songTitle.value = songTitle
-        val index = songs.value.indexOfFirst { it.title == songTitle }
+    fun setSongTitle(song: Song) {
+        this.songTitle.value = song.title
+        val index = songs.value.indexOfFirst { it == song }
         currentSongIndex.value = index
-        songAlbumArtUri.value = songs.value.getOrNull(index)?.albumArtUri
+        songAlbumArtUri.value = song.albumArtUri
+        isSongTitleInitialized = true
     }
 
     private fun playSong(context: Context, mediaPlayerHolder: MediaPlayerHolder) {
@@ -80,12 +88,20 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
                 mediaPlayer.stop()
             }
             mediaPlayer.reset()
-            val songUri = songs.value[currentSongIndex.value].songUri
-            mediaPlayer.setDataSource(context, songUri)
+
+            val songs = homeScreenViewModel.uiState.songsStateFlow.value
+
+            if (currentSongIndex.value !in songs.indices) {
+                currentSongIndex.value = INITIAL_VALUE_INDEX
+            }
+
+            val song = songs[currentSongIndex.value]
+            mediaPlayer.setDataSource(context, song.songUri)
             mediaPlayer.prepare()
             mediaPlayer.setOnPreparedListener {
                 mediaPlayer.start()
                 playPauseButtonMutableStateFlow.value = R.drawable.baseline_stop_24
+                setSongTitle(song)
             }
         }
     }
@@ -104,39 +120,50 @@ class PlayScreenViewModel(application: Application, songRepository: SongReposito
 
     fun onPreviousButtonClick(
         context: Context,
-        mediaPlayerHolder: MediaPlayerHolder,
-        songs: List<Song>
+        mediaPlayerHolder: MediaPlayerHolder
     ) {
-        val currentSongIndexValue = currentSongIndex.value
-        val newSongIndex = if (currentSongIndexValue > 0) {
-            currentSongIndexValue - 1
-        } else {
-            songs.size - 1
+        viewModelScope.launch {
+            songs.collect { songs ->
+                val currentSongIndexValue = currentSongIndex.value
+                val newSongIndex = if (currentSongIndexValue > 0) {
+                    currentSongIndexValue - 1
+                } else {
+                    songs.size - 1
+                }
+                currentSongIndex.value = newSongIndex
+                val newSong = songs.getOrNull(newSongIndex)
+                newSong?.let {
+                    setSongTitle(it)
+                    playSong(context, mediaPlayerHolder)
+                }
+            }
         }
-        currentSongIndex.value = newSongIndex
-        val newSong = songs.getOrNull(newSongIndex)
-        songTitle.value = newSong?.title
-        songAlbumArtUri.value = newSong?.albumArtUri
-        playSong(context, mediaPlayerHolder)
     }
 
     fun onNextButtonClick(
         context: Context,
-        mediaPlayerHolder: MediaPlayerHolder,
-        songs: List<Song>
+        mediaPlayerHolder: MediaPlayerHolder
     ) {
-        val currentSongIndexValue = currentSongIndex.value
-        val newSongIndex = if (currentSongIndexValue < songs.size - 1) {
-            currentSongIndexValue + 1
-        } else {
-            0
+        viewModelScope.launch {
+            songs.collect { songs ->
+                val currentSongIndexValue = currentSongIndex.value
+                val newSongIndex = if (currentSongIndexValue < songs.size - 1) {
+                    currentSongIndexValue + 1
+                } else {
+                    INITIAL_VALUE_INDEX
+                }
+                currentSongIndex.value = newSongIndex
+                val newSong = songs.getOrNull(newSongIndex)
+                newSong?.let {
+                    setSongTitle(it)
+                    playSong(context, mediaPlayerHolder)
+                }
+            }
         }
-        currentSongIndex.value = newSongIndex
-        val newSong = songs.getOrNull(newSongIndex)
-        songTitle.value = newSong?.title
-        songAlbumArtUri.value = newSong?.albumArtUri
-        playSong(context, mediaPlayerHolder)
     }
 
-
+    companion object {
+        const val INITIAL_VALUE_INDEX = 0
+        const val INITIAL_VALUE_SLIDER_POSITION = 0f
+    }
 }
