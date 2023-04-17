@@ -14,10 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.Slider
-import androidx.compose.material.Text
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,20 +45,16 @@ fun PlayScreen(viewModel: PlayScreenViewModel, mediaPlayerHolder: MediaPlayerHol
     }
 
     val context = LocalContext.current
-    val onPreviousClick = {
-        viewModel.onPreviousButtonClick(context, mediaPlayerHolder)
-    }
-    val onNextClick = {
-        viewModel.onNextButtonClick(context, mediaPlayerHolder)
-    }
-    val onPlayPauseClick = {
-        viewModel.onPlayPauseButtonClick()
-    }
+
     ScreenContentPlayer(
         uiState = viewModel.uiState,
-        onPreviousClick = onPreviousClick,
-        onNextClick = onNextClick,
-        onPlayPauseClick = onPlayPauseClick,
+        onPreviousClick = {
+            viewModel.onPreviousButtonClick(context, mediaPlayerHolder)
+        },
+        onNextClick = {
+            viewModel.onNextButtonClick(context, mediaPlayerHolder)
+        },
+        onPlayPauseClick = viewModel::onPlayPauseButtonClick,
         onSliderPositionChanged = { newSliderPosition ->
             viewModel.onSliderPositionChanged(
                 newSliderPosition
@@ -65,7 +62,6 @@ fun PlayScreen(viewModel: PlayScreenViewModel, mediaPlayerHolder: MediaPlayerHol
         }
     )
 }
-
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
@@ -83,8 +79,6 @@ fun ScreenContentPlayer(
     val playPauseButton by uiState.playPauseButton.collectAsState()
     val sliderPosition by uiState.sliderPosition.collectAsState()
 
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -93,8 +87,7 @@ fun ScreenContentPlayer(
         Box(Modifier.padding(16.dp)) {
             Column {
                 Image(
-                    painter = imageSong?.let { rememberImagePainter(data = it) } ?:
-                    painterResource(
+                    painter = imageSong?.let { rememberImagePainter(data = it) } ?: painterResource(
                         id = R.drawable.album_art_1
                     ),
                     contentDescription = stringResource(R.string.music_image),
@@ -105,6 +98,7 @@ fun ScreenContentPlayer(
 
                 Text(
                     text = title ?: stringResource(R.string.song_title),
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(top = 16.dp)

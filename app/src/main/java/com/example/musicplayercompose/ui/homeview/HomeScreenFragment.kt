@@ -6,27 +6,30 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomAppBar
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
@@ -34,6 +37,8 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.ExperimentalMaterial3Api
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -55,7 +61,6 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.example.musicplayercompose.ui.settingview.viewmodel.CustomViewModelFactory
 import com.example.musicplayercompose.R
-import com.example.musicplayercompose.ui.homeview.model.PullRefreshState
 import com.example.musicplayercompose.model.Song
 import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
@@ -76,6 +81,7 @@ class HomeScreenFragment : Fragment() {
         CustomViewModelFactory(SongRepository)
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -91,7 +97,6 @@ class HomeScreenFragment : Fragment() {
                         bottomBar = { BottomBarActions(onSettingsClick = { navigateToSettings() },
                             onPlayFirstSongClick = { playFirstSong()},
                             onPlayRandomSongClick = { playRandomSong() }
-
 
                         ) }
                     ) { paddingValues ->
@@ -119,11 +124,10 @@ class HomeScreenFragment : Fragment() {
     private fun playRandomSong() {
         val songs = viewModel.uiState.songsStateFlow.value
         if (songs.isNotEmpty()) {
-            val randomSongIndex = (0 until songs.size).random()
+            val randomSongIndex = (songs.indices).random()
             onSongClick(songs[randomSongIndex])
         }
     }
-
 
     private fun onSongClick(song: Song) {
         val position = viewModel.uiState.songsStateFlow.value.indexOf(song)
@@ -199,12 +203,15 @@ fun BottomBarActions(
 ) {
     BottomAppBar {
         IconButton(
-            onClick = onSettingsClick
+
+            onClick = onSettingsClick,
+            //modifier = Modifier.background(MaterialTheme.colors.primary)
 
         ) {
             Icon(
                 Icons.Filled.Settings,
-                contentDescription = stringResource(R.string.settings)
+                contentDescription = stringResource(R.string.settings),
+                tint = MaterialTheme.colorScheme.primary
             )
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -246,7 +253,7 @@ fun SongListItem(song: Song, onClick: (Song) -> Unit) {
                 .clip(RoundedCornerShape(4.dp))
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Text(song.title,  color = MaterialTheme.colors.secondary)
+        Text(song.title,  color = MaterialTheme.colorScheme.secondary)
     }
 }
 

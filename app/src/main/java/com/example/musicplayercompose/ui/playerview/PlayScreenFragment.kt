@@ -1,7 +1,9 @@
 package com.example.musicplayercompose.ui.playerview
 
 import android.app.Application
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +11,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.example.musicplayercompose.ui.settingview.viewmodel.CustomViewModelFactory
 import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
@@ -58,18 +61,37 @@ class PlayScreenFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initSongInfo()
-    }
-    
 
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        initInitialSongTitle()
+
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.getString("data")
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("data", "title")
+    }
+    private fun initInitialSongTitle() {
+        val args = arguments
+        val newSongTitle = args?.getString(SONG_TITLE_KEY).orEmpty()
+        viewModel.homeScreenViewModel.uiState.songsStateFlow.value.find { it.title == newSongTitle }
+            ?.let { song ->
+                viewModel.setSongTitle(song, "initInitialSongTitle")
+            }
+    }
 
     private fun initSongInfo() {
-        viewModel.uiState.songTitle.value?.let { songTitle ->
-            if (songTitle.isEmpty()) {
-                val args = arguments
-                val newSongTitle = args?.getString(SONG_TITLE_KEY).orEmpty()
-                val song = viewModel.homeScreenViewModel.uiState.songsStateFlow.value.find { it.title == newSongTitle }
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            viewModel.currentSong.collect { song ->
                 if (song != null) {
-                    viewModel.setSongTitle(song) // Pass the Song object
+                    viewModel.setSongTitle(song,"initSongInfo")
                 }
             }
         }

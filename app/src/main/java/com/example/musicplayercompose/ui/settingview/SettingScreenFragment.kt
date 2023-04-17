@@ -18,14 +18,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Checkbox
-import androidx.compose.material.Divider
-import androidx.compose.material.FabPosition
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Divider
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -57,6 +58,7 @@ class SettingScreenFragment : Fragment() {
     private lateinit var songs: MutableList<Song>
     private val songListState = mutableStateOf<List<Song>>(listOf())
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -83,7 +85,6 @@ class SettingScreenFragment : Fragment() {
                             )
                         },
                         floatingActionButtonPosition = FabPosition.End,
-                        isFloatingActionButtonDocked = true
                     ) { contentPadding ->
                         activity?.let {
                             SongListSetting(
@@ -245,9 +246,8 @@ fun SongListItem(
         )
 
         IconButton(onClick = { onDeleteSong(song) }) {
-            val deleteIcon = Icons.Default.Delete
             Icon(
-                deleteIcon,
+                Icons.Default.Delete,
                 contentDescription = stringResource(R.string.delete_song_button_description)
             )
         }
