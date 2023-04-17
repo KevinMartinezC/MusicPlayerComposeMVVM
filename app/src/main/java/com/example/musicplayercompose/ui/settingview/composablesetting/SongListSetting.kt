@@ -32,7 +32,6 @@ fun SongListSetting(
                 song = song,
                 onClick = { updatedSong ->
                     viewModel.handleSongClickCheckBox(songsState, updatedSong)
-
                 },
                 onDeleteSong = {
                     viewModel.handleSongDeletion(songsState, song, activity)

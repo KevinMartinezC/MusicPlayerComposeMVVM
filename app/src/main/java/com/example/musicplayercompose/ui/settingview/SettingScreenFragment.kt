@@ -36,7 +36,7 @@ class SettingScreenFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        viewModel.addNewSongsToProvider(requireActivity().contentResolver, ::loadSongsFromProvider)
+        viewModel.addNewSongsToProvider(requireActivity().contentResolver, requireActivity().resources, ::loadSongsFromProvider)
         loadSongsFromProvider()
         return composeView {
             Scaffold(

@@ -88,6 +88,7 @@ class SettingScreenViewModel(songRepository: SongRepository) : ViewModel() {
 
     fun addNewSongsToProvider(
         contentResolver: ContentResolver,
+        resources: android.content.res.Resources,
         loadSongsFromProvider: () -> Unit
     ) {
         val newSongs = listOf(
