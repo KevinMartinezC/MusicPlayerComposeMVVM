@@ -22,6 +22,7 @@ import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -52,6 +53,7 @@ import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModel
 import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModelFactory
 import com.example.musicplayercompose.ui.playerview.PlayScreenFragment
 import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
+import com.example.musicplayercompose.ui.theme.MyApplicationTheme
 
 
 class HomeScreenFragment : Fragment() {
@@ -72,17 +74,19 @@ class HomeScreenFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val songs by viewModel.uiState.songsStateFlow.collectAsState()
+                MyApplicationTheme{
+                    val songs by viewModel.uiState.songsStateFlow.collectAsState()
+                    Scaffold(
 
-                Scaffold(
-                    bottomBar = { BottomBarActions(onSettingsClick = { navigateToSettings() }) }
-                ) { paddingValues ->
-                    SongList(songs, paddingValues) { song ->
-                        onSongClick(song)
+                        bottomBar = { BottomBarActions(onSettingsClick = { navigateToSettings() }) }
+                    ) { paddingValues ->
+                        SongList(songs, paddingValues) { song ->
+                            onSongClick(song)
+                        }
                     }
                 }
-            }
 
+            }
         }
     }
 
@@ -188,6 +192,6 @@ fun SongListItem(song: Song, onClick: (Song) -> Unit) {
                 .clip(RoundedCornerShape(4.dp))
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Text(song.title)
+        Text(song.title,  color = MaterialTheme.colors.secondary)
     }
 }

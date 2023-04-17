@@ -24,6 +24,8 @@ class PlayScreenViewModel(
 
 ) :
     AndroidViewModel(application) {
+    private var isSongTitleInitialized = false
+
 
     private val sliderPosition = MutableStateFlow(0f)
 
@@ -75,7 +77,9 @@ class PlayScreenViewModel(
         val index = songs.value.indexOfFirst { it == song }
         currentSongIndex.value = index
         songAlbumArtUri.value = song.albumArtUri
+        isSongTitleInitialized = true
     }
+
 
 
     private fun playSong(context: Context, mediaPlayerHolder: MediaPlayerHolder) {

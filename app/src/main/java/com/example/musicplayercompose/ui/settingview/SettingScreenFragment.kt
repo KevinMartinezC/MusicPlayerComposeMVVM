@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -47,6 +46,7 @@ import com.example.musicplayercompose.model.Song
 import com.example.musicplayercompose.model.SongProvider.Companion.SONG_PROVIDER_URI
 import com.example.musicplayercompose.model.SongRepository
 import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
+import com.example.musicplayercompose.ui.theme.MyApplicationTheme
 
 class SettingScreenFragment : Fragment() {
     private val viewModel: SettingScreenViewModel by activityViewModels {
@@ -65,7 +65,7 @@ class SettingScreenFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                MaterialTheme {
+                MyApplicationTheme{
                     Scaffold(
                         floatingActionButton = {
                             FloatingActionButton(
