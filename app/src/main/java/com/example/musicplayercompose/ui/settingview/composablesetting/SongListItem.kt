@@ -20,12 +20,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.example.musicplayercompose.R
 import com.example.musicplayercompose.model.Song
 
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun SongListItem(
     song: Song,
@@ -37,7 +36,7 @@ fun SongListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = rememberImagePainter(data = song.albumArtUri),
+            painter = rememberAsyncImagePainter(model = song.albumArtUri),
             contentDescription = stringResource(R.string.album_art),
             modifier = Modifier
                 .size(48.dp)

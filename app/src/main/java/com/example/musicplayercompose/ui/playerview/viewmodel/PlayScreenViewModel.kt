@@ -24,11 +24,11 @@ class PlayScreenViewModel(
 
     private var isSongTitleInitialized = false
 
-    private val sliderPosition = MutableStateFlow(0f)
+    private val sliderPosition = MutableStateFlow(INITIAL_VALUE_SLIDER_POSITION)
 
     private val songTitle = MutableStateFlow<String?>(null)
 
-    private val currentSongIndex = MutableStateFlow(0)
+    private val currentSongIndex = MutableStateFlow(INITIAL_VALUE_INDEX)
 
     private val songAlbumArtUri = MutableStateFlow<Uri?>(null)
 
@@ -164,5 +164,6 @@ class PlayScreenViewModel(
 
     companion object {
         const val INITIAL_VALUE_INDEX = 0
+        const val INITIAL_VALUE_SLIDER_POSITION = 0f
     }
 }
