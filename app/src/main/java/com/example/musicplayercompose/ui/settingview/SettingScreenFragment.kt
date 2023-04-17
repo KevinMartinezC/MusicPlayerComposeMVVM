@@ -184,7 +184,6 @@ fun SongListSetting(
             SongListItem(
                 song = song,
                 onClick = { updatedSong ->
-                    // Update the song selection state in the list
                     var index = -1
                     for (i in songsState.value.indices) {
                         if (songsState.value[i].songUri == updatedSong.songUri) {
@@ -238,7 +237,6 @@ fun SongListItem(
         Spacer(modifier = Modifier.width(8.dp))
         Text(song.title, modifier = Modifier.weight(1f))
 
-        // Add the Checkbox for multiple selection
         Checkbox(
             checked = song.isSelected,
             onCheckedChange = { isChecked ->

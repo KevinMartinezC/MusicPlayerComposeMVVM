@@ -88,7 +88,12 @@ class HomeScreenFragment : Fragment() {
                 MyApplicationTheme{
                     val songs by viewModel.uiState.songsStateFlow.collectAsState()
                     Scaffold(
-                        bottomBar = { BottomBarActions(onSettingsClick = { navigateToSettings() }) }
+                        bottomBar = { BottomBarActions(onSettingsClick = { navigateToSettings() },
+                            onPlayFirstSongClick = { playFirstSong()},
+                            onPlayRandomSongClick = { playRandomSong() }
+
+
+                        ) }
                     ) { paddingValues ->
                         SongList(songs, paddingValues, onSongClick = { song ->
                             onSongClick(song)
@@ -105,6 +110,20 @@ class HomeScreenFragment : Fragment() {
     private fun navigateToSettings() {
         findNavController().navigate(R.id.action_homeScreenFragment_to_settingScreenFragment)
     }
+    private fun playFirstSong() {
+        val songs = viewModel.uiState.songsStateFlow.value
+        if (songs.isNotEmpty()) {
+            onSongClick(songs[0])
+        }
+    }
+    private fun playRandomSong() {
+        val songs = viewModel.uiState.songsStateFlow.value
+        if (songs.isNotEmpty()) {
+            val randomSongIndex = (0 until songs.size).random()
+            onSongClick(songs[randomSongIndex])
+        }
+    }
+
 
     private fun onSongClick(song: Song) {
         val position = viewModel.uiState.songsStateFlow.value.indexOf(song)
@@ -171,7 +190,13 @@ fun SongList(
 }
 
 @Composable
-fun BottomBarActions(onSettingsClick: () -> Unit) {
+fun BottomBarActions(
+    onSettingsClick: () -> Unit,
+    onPlayFirstSongClick: () -> Unit,
+    onPlayRandomSongClick: () -> Unit
+
+
+) {
     BottomAppBar {
         IconButton(
             onClick = onSettingsClick
@@ -184,9 +209,8 @@ fun BottomBarActions(onSettingsClick: () -> Unit) {
         }
         Spacer(modifier = Modifier.weight(1f))
         IconButton(
-            onClick = {
-                // Handle random song button click
-            }
+            onClick = onPlayRandomSongClick
+
         ) {
             Icon(
                 Icons.Filled.Shuffle,
@@ -195,9 +219,8 @@ fun BottomBarActions(onSettingsClick: () -> Unit) {
         }
         Spacer(modifier = Modifier.weight(1f))
         IconButton(
-            onClick = {
-                // Handle play first song button click
-            }
+            onClick = onPlayFirstSongClick
+
         ) {
             Icon(
                 Icons.Filled.PlayArrow,
@@ -227,18 +250,3 @@ fun SongListItem(song: Song, onClick: (Song) -> Unit) {
     }
 }
 
-@Composable
-fun rememberPullRefreshState(isRefreshing: Boolean, onRefresh: () -> Unit): PullRefreshState {
-    return remember { PullRefreshState(isRefreshing, onRefresh) }
-}
-
-@Composable
-fun PullRefreshIndicator(
-    isRefreshing: Boolean,
-    state: PullRefreshState,
-    modifier: Modifier = Modifier
-) {
-    if (isRefreshing) {
-        CircularProgressIndicator(modifier)
-    }
-}
