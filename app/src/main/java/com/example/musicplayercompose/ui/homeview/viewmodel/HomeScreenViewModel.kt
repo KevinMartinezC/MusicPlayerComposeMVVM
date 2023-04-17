@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicplayercompose.model.Song
 import com.example.musicplayercompose.model.SongRepository
-import com.example.musicplayercompose.ui.homeview.HomeUIState
 import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -33,7 +32,26 @@ class HomeScreenViewModel(
         }
     }
 
-
+    fun playFirstSong(): Song? {
+        val songs = uiState.songsStateFlow.value
+        return if (songs.isNotEmpty()) {
+            songs[0]
+        } else {
+            null
+        }
+    }
+    fun playRandomSong(): Song? {
+        val songs = uiState.songsStateFlow.value
+        return if (songs.isNotEmpty()) {
+            val randomSongIndex = (songs.indices).random()
+            songs[randomSongIndex]
+        } else {
+            null
+        }
+    }
+    fun onSongClick(song: Song): Int {
+        return uiState.songsStateFlow.value.indexOf(song)
+    }
     private suspend fun collectAddedSongs() {
         sharedViewModel.addedSongs.collect { song ->
             songsMutableState.value = songsMutableState.value + song

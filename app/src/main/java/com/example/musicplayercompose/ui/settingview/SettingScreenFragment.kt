@@ -1,55 +1,27 @@
 package com.example.musicplayercompose.ui.settingview
 
-import android.app.Activity
-import android.content.ContentUris
-import android.content.ContentValues
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import coil.annotation.ExperimentalCoilApi
-import coil.compose.rememberImagePainter
-import com.example.musicplayercompose.ui.settingview.viewmodel.CustomViewModelFactory
 import com.example.musicplayercompose.R
 import com.example.musicplayercompose.model.Song
-import com.example.musicplayercompose.model.SongProvider.Companion.SONG_PROVIDER_URI
 import com.example.musicplayercompose.model.SongRepository
+import com.example.musicplayercompose.ui.settingview.composablesetting.SongListSetting
+import com.example.musicplayercompose.ui.settingview.viewmodel.CustomViewModelFactory
 import com.example.musicplayercompose.ui.settingview.viewmodel.SettingScreenViewModel
-import com.example.musicplayercompose.ui.theme.MyApplicationTheme
+import com.example.musicplayercompose.utils.composeView
 
 class SettingScreenFragment : Fragment() {
     private val viewModel: SettingScreenViewModel by activityViewModels {
@@ -64,86 +36,38 @@ class SettingScreenFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        viewModel.addNewSongsToProvider(requireActivity().contentResolver, ::loadSongsFromProvider)
         loadSongsFromProvider()
-        addNewSongsToProvider()
-        return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
-                MyApplicationTheme{
-                    Scaffold(
-                        floatingActionButton = {
-                            FloatingActionButton(
-                                onClick = {
-                                    addSelectedSongsToHomeScreen()
-                                },
-                                content = {
-                                    Icon(
-                                        Icons.Default.Add,
-                                        contentDescription = stringResource(R.string.add_song_button_description)
-                                    )
-                                }
+        return composeView {
+            Scaffold(
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = {
+                            viewModel.addSelectedSongsToHomeScreen(
+                                songListState,
+                                requireActivity().contentResolver
                             )
                         },
-                        floatingActionButtonPosition = FabPosition.End,
-                    ) { contentPadding ->
-                        activity?.let {
-                            SongListSetting(
-                                activity = it,
-                                songsState = songListState,
-                                paddingValues = contentPadding,
-                                onDeleteSong = { song -> deleteSongFromProvider(song) }
+                        content = {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = stringResource(R.string.add_song_button_description)
                             )
                         }
-                    }
+                    )
+                },
+                floatingActionButtonPosition = FabPosition.End,
+            ) { contentPadding ->
+                activity?.let {
+                    SongListSetting(
+                        activity = it,
+                        songsState = songListState,
+                        paddingValues = contentPadding,
+                        viewModel = viewModel
+                    )
                 }
             }
         }
-    }
-    private fun deleteSongFromProvider(song: Song) {
-        val selection = "$SONG_URI = ?"
-        val selectionArgs = arrayOf(song.songUri.toString())
-        requireActivity().contentResolver.delete(SONG_PROVIDER_URI, selection, selectionArgs)
-    }
-
-
-    private fun addSelectedSongsToHomeScreen() {
-        val selectedSongs = songListState.value.filter { it.isSelected }
-        viewModel.addNewSongs(selectedSongs)
-
-        for (song in selectedSongs) {
-            val contentValues = ContentValues().apply {
-                put(SONG_NAME, song.title)
-                put(SONG_URI, song.songUri.toString())
-                put(ALBUM_ART_URI, song.albumArtUri.toString())
-            }
-            requireActivity().contentResolver.insert(SONG_PROVIDER_URI, contentValues)
-        }
-
-        songListState.value = songListState.value.map { song ->
-            song.copy(isSelected = false)
-        }
-    }
-
-    private fun addNewSongsToProvider() {
-
-        val newSongs = listOf(
-            Song.create(SONG_NAME_FOUR, R.raw.song4, R.drawable.album_art_4),
-            Song.create(SONG_NAME_FIVE, R.raw.song5, R.drawable.album_art_5),
-            Song.create(SONG_NAME_SIX, R.raw.song6, R.drawable.album_art_6),
-            Song.create(SONG_NAME_SEVEN, R.raw.song7, R.drawable.album_art_7),
-            Song.create(SONG_NAME_EIGHT, R.raw.song8, R.drawable.album_art_8),
-            Song.create(SONG_NAME_NINE, R.raw.song9, R.drawable.album_art_9),
-            Song.create(SONG_NAME_TEN, R.raw.song10, R.drawable.album_art_10),
-        )
-        newSongs.forEach { song ->
-            val contentValues = ContentValues().apply {
-                put(SONG_NAME, song.title)
-                put(SONG_URI, song.songUri.toString())
-                put(ALBUM_ART_URI, song.albumArtUri.toString())
-            }
-            requireActivity().contentResolver.insert(SONG_PROVIDER_URI, contentValues)
-        }
-        loadSongsFromProvider()
     }
 
     private fun loadSongsFromProvider() {
@@ -159,98 +83,6 @@ class SettingScreenFragment : Fragment() {
         const val SONG_NAME_EIGHT: String = "Adele - Someone Like You "
         const val SONG_NAME_NINE: String = "John Legend - All of Me "
         const val SONG_NAME_TEN: String = "Avicii ft - Wake Me Up "
-        const val SONG_NAME = "song_name"
-        const val SONG_URI = "song_uri"
-        const val ALBUM_ART_URI = "album_art_uri"
     }
 }
 
-@Composable
-fun SongListSetting(
-    songsState: MutableState<List<Song>>,
-    paddingValues: PaddingValues,
-    onDeleteSong: (Song) -> Unit,
-    activity: Activity,
-
-
-    ) {
-    LazyColumn(
-        modifier = Modifier.padding(paddingValues),
-        contentPadding = PaddingValues(
-            horizontal = 0.dp,
-            vertical = 8.dp
-        )
-    ) {
-        items(songsState.value) { song ->
-            SongListItem(
-                song = song,
-                onClick = { updatedSong ->
-                    var index = -1
-                    for (i in songsState.value.indices) {
-                        if (songsState.value[i].songUri == updatedSong.songUri) {
-                            index = i
-                            break
-                        }
-                    }
-
-                    if (index >= 0) {
-                        songsState.value = songsState.value.toMutableList().apply {
-                            this[index] = updatedSong.copy(isSelected = updatedSong.isSelected)
-                        }
-                    }
-                },
-                onDeleteSong = {
-                        val songIndex = songsState.value.indexOf(song)
-                        if (songIndex >= 0) {
-                            val songUriWithId = ContentUris.withAppendedId(SONG_PROVIDER_URI, songIndex.toLong())
-                            activity.contentResolver.delete(songUriWithId, null, null)
-                            songsState.value = songsState.value.toMutableList().apply {
-                                removeAt(songIndex)
-                            }
-                        }
-
-                },
-            )
-            Divider()
-        }
-    }
-}
-
-@OptIn(ExperimentalCoilApi::class)
-@Composable
-fun SongListItem(
-    song: Song,
-    onClick: (Song) -> Unit,
-    onDeleteSong: (Song) -> Unit
-
-) {
-    Row(
-        modifier = Modifier.padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            painter = rememberImagePainter(data = song.albumArtUri),
-            contentDescription = stringResource(R.string.album_art),
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(4.dp))
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(song.title, modifier = Modifier.weight(1f))
-
-        Checkbox(
-            checked = song.isSelected,
-            onCheckedChange = { isChecked ->
-                onClick(song.copy(isSelected = isChecked))
-            }
-        )
-
-        IconButton(onClick = { onDeleteSong(song) }) {
-            Icon(
-                Icons.Default.Delete,
-                contentDescription = stringResource(R.string.delete_song_button_description)
-            )
-        }
-
-    }
-}

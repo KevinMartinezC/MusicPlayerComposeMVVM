@@ -1,17 +1,14 @@
 package com.example.musicplayercompose.ui.playerview.viewmodel
 
 
-import android.app.Application
 import android.content.Context
 import android.net.Uri
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicplayercompose.R
 import com.example.musicplayercompose.model.Song
 import com.example.musicplayercompose.model.media.MediaPlayerHolder
 import com.example.musicplayercompose.ui.homeview.viewmodel.HomeScreenViewModel
-import com.example.musicplayercompose.ui.playerview.PlayerUIState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,10 +19,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class PlayScreenViewModel(
-    application: Application,
     val homeScreenViewModel: HomeScreenViewModel,
-) :
-    AndroidViewModel(application) {
+) : ViewModel(){
 
     private var isSongTitleInitialized = false
 
@@ -79,10 +74,9 @@ class PlayScreenViewModel(
         }
     }
 
-    fun setSongTitle(song: Song, from:String) {
+    fun setSongTitle(song: Song) {
         this.songTitle.value = song.title
         val index = songs.value.indexOfFirst { it == song }
-        Log.d("testing", "title${song.title}, from: $from")
         currentSongIndex.value = index
         songAlbumArtUri.value = song.albumArtUri
         isSongTitleInitialized = true
@@ -107,7 +101,7 @@ class PlayScreenViewModel(
             mediaPlayer.setOnPreparedListener {
                 mediaPlayer.start()
                 playPauseButtonMutableStateFlow.value = R.drawable.baseline_stop_24
-                setSongTitle(song, "playSong")
+                setSongTitle(song)
             }
         }
     }
@@ -139,7 +133,7 @@ class PlayScreenViewModel(
                 currentSongIndex.value = newSongIndex
                 val newSong = songs.getOrNull(newSongIndex)
                 newSong?.let {
-                    setSongTitle(it,"onPreviousButtonClick")
+                    setSongTitle(it)
                     playSong(context, mediaPlayerHolder)
                 }
             }
@@ -161,7 +155,7 @@ class PlayScreenViewModel(
                 currentSongIndex.value = newSongIndex
                 val newSong = songs.getOrNull(newSongIndex)
                 newSong?.let {
-                    setSongTitle(it, "onNextButtonClick")
+                    setSongTitle(it)
                     playSong(context, mediaPlayerHolder)
                 }
             }
